@@ -1,0 +1,63 @@
+import arcpy,os
+    def addLayer(current_mxd, filePath):
+        df = arcpy.mapping.ListDataFrames(current_mxd)[0]
+        newlayer = arcpy.mapping.Layer(filePath)
+        arcpy.mapping.AddLayer(df, newlayer,"BOTTOM")
+    projectlocation = ""
+
+    projectID = ""
+
+    prep = "x" + "\n" + "x" + "\n" + "x"
+
+    projectClientName = "HV" + "\n" + "Environmental Site Assessment"  + "\n" + ""
+
+
+    #### add edmonton imagery to app folder #####
+    filePathList = [r'V:\1102\active\110220065\gis\imagery\aep\1950_0135_041-ps.sid',r'V:\1102\active\110220065\gis\imagery\aep\1962_0818_077-ep.sid']
+    coe = [r'r'Q:\Images\EDMONTON_IMAGERY\2012\EDMONTON_2012_Colour.sid']
+    coeLayer = [r'Q:\Images\EDMONTON_IMAGERY\2014\2014.lyr',r'Q:\Images\EDMONTON_IMAGERY\2015\2015.lyr']
+
+    current_mxd = arcpy.mapping.MapDocument(r'C:\Users\vlaw\Desktop\Application\template\mxd\historical_template.mxd')
+    cwd =  os.getcwd()
+    for frame in arcpy.mapping.ListDataFrames(current_mxd):
+        frame.spatialReference = arcpy.SpatialReference(os.path.join(cwd, 'projection','NAD 1983 3TM 114.prj'))
+
+        for lyr in arcpy.mapping.ListLayers(current_mxd,"",frame):
+            if lyr.name == "Site_Boundary":
+                lyr.replaceDataSource(r'V:\1102\active\110220065\gis\project_data',"SHAPEFILE_WORKSPACE","study_area") 
+                frame.panToExtent(lyr.getExtent())
+            for a in filePathList:
+                b = os.path.basename(a)
+                d = b.replace(".sid","")
+                year = b[0:4]
+                photoID = b[5:13].replace('_',' ')
+                addLayer(current_mxd,a)
+
+                projectNumber = arcpy.mapping.ListLayoutElements(current_mxd, "TEXT_ELEMENT", "ProjectNumber or FigureID")[0]
+                projectNumber.text = projectID
+                projectLocation = arcpy.mapping.ListLayoutElements(current_mxd, "TEXT_ELEMENT", "Project Location Line")[0]
+                projectLocation.text = projectlocation
+                projectLocation.elementPositionY = 1.7813 
+                QAQC = arcpy.mapping.ListLayoutElements(current_mxd, "TEXT_ELEMENT", "Prepared By text block")[0]
+                QAQC.text = prep
+                clientProjectName = arcpy.mapping.ListLayoutElements(current_mxd, "TEXT_ELEMENT", "Client/Project Name")[0]
+                clientProjectName.text = projectClientName
+                clientProjectName.elementPositionY = 1.6322
+                figureNumber = arcpy.mapping.ListLayoutElements(current_mxd, "TEXT_ELEMENT", "Figure Number1")[0]
+                figureNumber.text = year
+                reference = arcpy.mapping.ListLayoutElements(current_mxd, "TEXT_ELEMENT", "reference")[0]
+                reference.text =reference.text.replace("REPLACE",photoID).replace("YEAR",year)
+                mxdName = "fig_"+year+"_historical.mxd"
+                ws = r'V:\1102\active\110220065\gis\figures\historical'
+                pdf_folder= os.path.join(ws, "pdf") 
+                current_mxd.saveACopy(os.path.join(ws,mxdName))                    
+                pdf_name = mxdName.replace(".mxd",".pdf")
+                output = os.path.join(pdf_folder, pdf_name)
+                arcpy.mapping.ExportToPDF(current_mxd, output, resolution =250)
+                if lyr.name == d:
+                    lyr.visible = False 
+
+
+
+                c = mxdName+ "\n" + "Exported map file: " + str(pdf_folder) + "\n"
+                print c
