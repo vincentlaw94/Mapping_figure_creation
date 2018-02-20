@@ -1,0 +1,785 @@
+import Tkinter as tk
+from tkFileDialog import *
+import ttk
+import os, shutil,csv
+
+
+class ESA(tk.Tk):
+    def __init__(self,*args,**kwargs):
+        tk.Tk.__init__(self,*args,**kwargs)
+        container = tk.Frame(self)
+
+        container.pack(side="top", fill="both", expand=True)
+        container.grid_rowconfigure(0, weight=1)
+        container.grid_columnconfigure(0, weight=1)
+
+        self.frames={}
+        for f in (newProject, existingProject, exportProject):
+
+            frame = f(container, self)
+            self.frames[f] = frame
+            frame.grid(row=0, column=0, sticky = "nsew")
+
+        self.show_frame(newProject)
+    def show_frame(self, cont):
+        frame = self.frames[cont]
+        frame.tkraise()
+
+class newProject(tk.Frame):
+    def __init__ (self, parent, controller):
+        tk.Frame.__init__(self,parent)
+        button1 = tk.Button(self, text="New Project",
+                            command=lambda: controller.show_frame(newProject))
+        button1.grid(row=0,column=0,sticky='WE')
+        button1.configure(relief= "sunken")
+        button2 = tk.Button(self, text="Update Existing Project",
+                            command=lambda: controller.show_frame(existingProject))
+        button2.grid(row=0,column=1,sticky='WE')
+        button3 = tk.Button(self, text="Export",
+                            command=lambda: controller.show_frame(exportProject))
+        button3.grid(row=0,column=2,sticky='WE')
+
+        stepOne = tk.LabelFrame(self, text=" 1. Configuration:")
+        stepOne.grid(row=1, columnspan=7, sticky='WE', \
+                     padx=5, pady=5, ipadx=5, ipady=5)
+        
+        
+        
+
+
+        projectTypeTxt = tk.Label(stepOne, text="Project Type:")
+        projectTypeTxt.grid(row=0, column=0, sticky='E', padx=2, pady=1)
+        list = ["ESA_Phase1","ESA_Phase2", "Remedial_Excavation_Program", "Historical", "Pipelines","Vegetation", "Stand_Alone"]
+        self.projectType = tk.StringVar()
+        projectTypeCB = ttk.Combobox(stepOne, value=list, textvariable=self.projectType)
+        projectTypeCB.grid(row=0,column=1, sticky='E',padx=2,pady=1)
+        
+
+        projectionTxt = tk.Label(stepOne, text="Coordinate System:")
+        projectionTxt.grid(row=0, column=2, sticky='E', padx=2,pady=1)
+        list1 = ["3TM","UTM10", "UTM11", "UTM12"]
+        self.projection = tk.StringVar()
+        projectionTypeCB = ttk.Combobox(stepOne, textvariable=self.projection, value=list1)
+        projectionTypeCB.grid(row=0,column=3, sticky='E',pady=1)
+
+        pageSize = tk.Label(stepOne, text="Size:")
+        pageSize.grid(row=0, column=4, sticky='E', padx=2,pady=1)
+        mxdType = ["letter_8x11","landscape_8x11","letter_11x17","landscape_11x17","landscape_22x34"]
+        self.mxd = tk.StringVar()
+        pageSizeCB = ttk.Combobox(stepOne, textvariable=self.mxd, value= mxdType)
+        pageSizeCB.grid(row=0,column=5, sticky='E',pady=1)
+
+        projectIDTxt = tk.Label(stepOne, text="Project ID:")
+        projectIDTxt.grid(row=1, column=0, sticky='E', padx=2, pady=1)
+        self.projectID = tk.StringVar()
+        projectIDEntry = tk.Entry(stepOne, textvariable=self.projectID)
+        projectIDEntry.grid(row=1, column=1, sticky="WE", pady=2)
+
+        imageryTxt = tk.Label(stepOne, text="IMAGERY:")
+        imageryTxt.grid(row=1, column=2, sticky='E', padx=2,pady=1)
+        list2 = ["Bing","City of Edmonton"]
+        self.imagery = tk.StringVar()
+        imageryTypeCB = ttk.Combobox(stepOne, textvariable=self.imagery, value=list2)
+    
+        imageryTypeCB.grid(row=1,column=3, sticky='E',pady=1)
+        
+
+        locationTxt= tk.Label(stepOne, text="Project Location:")
+        locationTxt.grid(row=2, column=0, sticky='E', padx=2, pady=1)
+        self.location1 = tk.StringVar()
+        locationEntry1 = tk.Entry(stepOne,textvariable=self.location1)
+        locationEntry1.grid(row=2, column=1, sticky="WE", pady=2)
+        self.location2 = tk.StringVar()
+        locationEntry2 = tk.Entry(stepOne,textvariable=self.location2)
+        locationEntry2.grid(row=2, column=2, sticky="WE", pady=2)
+        self.location3 = tk.StringVar()
+        locationEntry3 = tk.Entry(stepOne,textvariable=self.location3)
+        locationEntry3.grid(row=2, column=3, sticky="WE", pady=2)
+
+        clientName1= tk.Label(stepOne, text="Client/Project Name:")
+        clientName1.grid(row=3, column=0, sticky='E', padx=0, pady=1)
+        self.clientName1 = tk.StringVar()
+        clientNameEntry1 = tk.Entry(stepOne, textvariable=self.clientName1)
+        clientNameEntry1.grid(row=3, column=1, sticky="WE", pady=2)
+
+        self.clientName2 = tk.StringVar()
+        clientNameEntry2 = tk.Entry(stepOne, textvariable=self.clientName2)
+        clientNameEntry2.grid(row=3, column=2, sticky="WE", pady=2)
+        self.clientName3 = tk.StringVar()
+        clientNameEntry3 = tk.Entry(stepOne, textvariable=self.clientName3)
+        clientNameEntry3.grid(row=3, column=3, sticky="WE", pady=2)
+
+
+    
+        clientLogo= tk.Label(stepOne, text="Client Logo:")
+        clientLogo.grid(row=4, column=0, sticky='EW', padx=2, pady=1)
+        self.logo = tk.StringVar()
+        clientLogoEntry = tk.Entry(stepOne, textvariable=self.logo, )
+        clientLogoEntry.grid(row=4, column=1,columnspan=5, sticky="WE", pady=2)
+        stepOne.button = tk.Button(stepOne, text="Browse...", command=self.load_logo, width=10)
+        stepOne.button.grid(row=4, column=7, sticky="WE",padx=2)
+       
+        figureName = tk.Label(stepOne, text="Figure Title:")
+        figureName.grid(row=5, column=0, sticky='E', padx=0, pady=1)
+        self.figureName = tk.StringVar()
+        figureNameEntry = tk.Entry(stepOne, textvariable=self.figureName)
+        figureNameEntry.grid(row=5, column=1, sticky="WE", pady=2, columnspan=5)       
+        
+
+
+
+
+
+        innerframe = tk.Frame(stepOne)
+        innerframe.grid(row=6, columnspan=11, sticky='WESN', \
+                     padx=5, pady=4, ipadx=5, ipady=4)
+
+        prepTxt= tk.Label(innerframe, text="Prepared by")
+        prepTxt.grid(row=0, column=0, sticky='E', padx=2, pady=1)
+        self.prep = tk.StringVar()
+        prepTxtEntry = tk.Entry(innerframe,width=4,textvariable=self.prep)
+        prepTxtEntry.grid(row=0, column=1, sticky="W", pady=2)
+        onTxt1= tk.Label(innerframe, text="on")
+        onTxt1.grid(row=0, column=2, sticky="W", pady=2)
+        self.date1=tk.StringVar()
+        dateEntry1 = tk.Entry(innerframe,width=10,textvariable=self.date1)
+        dateEntry1.grid(row=0, column=3, sticky="W", pady=2, padx=2)
+        
+        QATxt= tk.Label(innerframe, text="Quality Reviwed by")
+        QATxt.grid(row=0, column=4, sticky='E', padx=2, pady=1)
+        self.QA=tk.StringVar()
+        QATxtEntry = tk.Entry(innerframe,width=4,textvariable=self.QA)
+        QATxtEntry.grid(row=0, column=5, sticky="W", pady=2)
+        onTxt2= tk.Label(innerframe, text="on")
+        onTxt2.grid(row=0, column=6, sticky="W", pady=2)
+        self.date2 =tk.StringVar()
+        dateEntry2 = tk.Entry(innerframe,width=10,textvariable=self.date2)
+        dateEntry2.grid(row=0, column=7, sticky="W", pady=2)
+
+        approvedTxt= tk.Label(innerframe, text="Approved by")
+        approvedTxt.grid(row=0, column=8, sticky='E', padx=2, pady=1)
+        self.approved=tk.StringVar()
+        approvedEntry = tk.Entry(innerframe,width=4,textvariable=self.approved)
+        approvedEntry.grid(row=0, column=9, sticky="W", pady=2)
+        onTxt3= tk.Label(innerframe, text="on")
+        onTxt3.grid(row=0, column=10, sticky="W", pady=2)
+        self.date3=tk.StringVar()
+        dateEntry3 = tk.Entry(innerframe,width=10,textvariable=self.date3)
+        dateEntry3.grid(row=0, column=11, sticky="W", pady=2)
+        
+
+
+
+
+################################################################################
+
+        stepTwo = tk.LabelFrame(self, text=" 2. Data")
+        stepTwo.grid(row=3, columnspan=7, sticky='WE', \
+                     padx=5, pady=5, ipadx=5, ipady=5)
+
+        kmzFiletxt = tk.Label(stepTwo, \
+              text="Load KMZ file:")
+        kmzFiletxt.grid(row=0, column=0, sticky='W', padx=1, pady=2)
+        self.kmzfile = tk.StringVar()
+        kmzEntry = tk.Entry(stepTwo, textvariable=self.kmzfile )
+        kmzEntry.grid(row=0, column=1,columnspan=6, sticky="WE", pady=2)
+        stepTwo.kmzbutton = tk.Button(stepTwo, text="Browse...", command=self.load_kmz, width=10)
+        stepTwo.kmzbutton.grid(row=0, column=8, sticky="WE",padx=5)
+
+         
+        csvtxt = tk.Label(stepTwo, \
+              text="Load CSV file:")
+        csvtxt.grid(row=1, column=0, sticky='W', padx=1, pady=2)
+        self.csvfile = tk.StringVar()
+        csvEntry = tk.Entry(stepTwo, textvariable=self.csvfile,width=75)
+        csvEntry.grid(row=1, column=1,columnspan=6, sticky="WE", pady=2)
+        stepTwo.csvbutton = tk.Button(stepTwo, text="Browse...", command=self.load_csv, width=10)
+        stepTwo.csvbutton.grid(row=1, column=8, sticky="E",padx=5)
+
+
+        loadinglayer = tk.LabelFrame(stepTwo, text="Add layer to MXD")
+        loadinglayer.grid(row=2, columnspan=5, sticky='nsew', \
+                     padx=5, pady=5, ipadx=5, ipady=5)
+        
+        filePathtxt = tk.Label(loadinglayer, \
+             )
+        filePathtxt.grid(row=2, column=0, sticky='W', padx=1, pady=2)
+        self.filePath = tk.StringVar()
+        filePathEntry = tk.Entry(loadinglayer, textvariable=self.filePath,width=75)
+        filePathEntry.grid(row=2, column=1,columnspan=6, sticky="WE")
+        stepTwo.filebutton = tk.Button(loadinglayer, text="Browse...", command=self.load_file, width=10)
+        stepTwo.filebutton.grid(row=2, column=8, sticky="E")
+        stepTwo.addbutton = tk.Button(loadinglayer, text="Add", command=self.add_data, width=10)
+        stepTwo.addbutton.grid(row=2, column=9, sticky="NE")
+        stepTwo.removebutton = tk.Button(loadinglayer, text="Remove", command=self.remove_data, width=10)
+        stepTwo.removebutton.grid(row=4, column=8, sticky="N")
+        
+        self.listbox = tk.Listbox(loadinglayer, selectmode = 'MULTIPLE', width = 85)
+
+        
+        self.listbox.grid(row=4, column=1, sticky='n',padx=0, pady=1)
+        
+
+
+
+        
+
+
+        stepThree = tk.LabelFrame(self, text=" 3. Destination Source: ")
+        stepThree.grid(row=4, columnspan=7, sticky='WE', \
+                       padx=5, pady=5, ipadx=5, ipady=5)
+        self.destSrcPath = tk.StringVar()
+        self.destEntry = tk.Entry(stepThree, textvariable=self.destSrcPath,width=100,state='disabled')
+        self.destEntry.grid(row=1, column=0,columnspan=10, sticky="WE", pady=2)
+        self.csvbutton = tk.Button(stepThree, text="Browse...", command=self.load_destSrc, width=10,state='disabled')
+        self.csvbutton.grid(row=1, column=11, sticky="WE",padx=2)
+        stepThree.runbutton = tk.Button(stepThree, text="RUN", command=self.run, width=25)
+        stepThree.runbutton.grid(row=1, column=12, sticky="WE",padx=2)
+
+        self.Q = tk.IntVar()
+        Qdrive = tk.Radiobutton(stepThree, text="QDRIVE FORMAT", variable=self.Q, value = 1, command= self.normal).grid(row=0, column=1 ,sticky='W')
+
+        Vdrive = tk.Radiobutton(stepThree, text="VDRIVE FORMAT", variable=self.Q, value = 0, command=self.disabled).grid(row=0, column=0, sticky='W')
+
+
+            
+
+
+
+        
+                
+        csLbl = tk.Label(self, text="CONSOLE LOG:")
+        csLbl.grid(row=5, columnspan=7, sticky='W', \
+                       padx=2, pady=0, ipadx=1, ipady=0)
+       
+        scrollb = tk.Scrollbar(self)
+        scrollb.grid(row=6, column=4, sticky='w')
+        self.console = tk.Text(self,yscrollcommand=scrollb.set,state='disabled')
+        self.console.grid(row=6, columnspan=10,sticky='WENS', \
+                       padx=7, pady=0, ipadx=7, ipady=0)
+        self.filePathList = []
+    def add_data(self):
+        if self.filePath.get():
+            self.filePathList.append(self.filePath.get())
+            self.listbox.insert('end',self.filePath.get())
+        
+        
+        
+    def remove_data(self):
+        selected_item = self.listbox.curselection()
+        self.filePathList.remove(self.listbox.get(selected_item))
+        self.listbox.delete(selected_item)
+        
+        
+        
+    def normal(self):
+        self.csvbutton.configure(state='normal')
+        self.destEntry.configure(state='normal')
+
+    def disabled(self):
+        self.destEntry.configure(state='disabled')
+        self.csvbutton.configure(state='disabled')
+
+
+        
+
+    def load_file(self):
+        self.file = askopenfilename(initialdir=r"C:\Users")
+        if self.file:
+            self.filePath.set(self.file)
+            self.filePathList.append(self.filePath.get())
+            self.listbox.insert('end',self.filePath.get())
+
+    def load_logo(self):
+        self.logoPic = askopenfilename(initialdir=r"C:\Users",filetypes=(                           
+                                            ('JPEG / JFIF','*.jpg'),('Portable Network Graphics','*.png'),('Windows Bitmap','*.bmp'),
+                                           ("All files", "*.*") ))
+        if self.logoPic:
+            self.logo.set(self.logoPic)
+    def load_kmz(self):
+        
+        self.kmz = askopenfilename(initialdir=r"C:\Users",filetypes=(                           
+                                            ('KMZ','*.kmz'),
+                                           ("All files", "*.*") ))
+        if self.kmz:
+            self.kmzfile.set(self.kmz)
+    def load_csv(self):
+        self.csv = askopenfilename(initialdir=r"C:\Users",filetypes=(                           
+                                            ('KMZ','*.kmz'),
+                                           ("All files", "*.*") ))
+        if self.csv:
+            self.csvfile.set(self.csv)
+    def load_destSrc(self):
+        self.destSrc = askdirectory()
+        if self.destSrc:
+            self.destSrcPath.set(self.destSrc)
+
+    def addLayer(self, current_mxd, filePath):
+        df = arcpy.mapping.ListDataFrames(current_mxd)[0]
+        newlayer = arcpy.mapping.Layer(filePath)
+        arcpy.mapping.AddLayer(df, newlayer,"TOP")
+
+    def append_kmzFile(self, kmzfile, outLocation):
+        gdbname = self.projectID.get() + ".gdb"
+        kmz1 = os.path.basename(kmzfile)
+        kmz2 = kmz1[:kmz1.find(".kmz")] + ".gdb"
+        kmzPolygon = os.path.join(outLocation,kmz2,"Placemarks","Polygons")
+        kmzPoint = os.path.join(outLocation,kmz2,"Placemarks","Points")
+        kmzLine = os.path.join(outLocation,kmz2,"Placemarks","Lines")
+        cwd = os.getcwd()
+        outCS = arcpy.SpatialReference(os.path.join(cwd, 'projection','NAD 1983 UTM Zone 12N.prj'))
+        arcpy.KMLToLayer_conversion(kmzfile, outLocation)
+        kmz = [kmzPolygon,kmzPoint,kmzLine]
+        
+        for x in kmz:
+            if x == kmzPolygon:
+                if arcpy.Exists(kmzPolygon):
+                    if self.Q.get() == 0:
+                    
+                        out_dataset = os.path.join(r'V:\1102\active',self.projectID.get(),'gis','project_data',"kmz","kmz_projected_polygon.shp")
+                        gdb = os.path.join(r'V:\1102\active',self.projectID.get(),'gis', "project_data", gdbname, "Site_Feature_Polygon")
+                                           
+                    else:
+                        out_dataset = os.path.join(self.destSrcPath.get(), self.projectID.get(),"project_data","kmz","kmz_projected_polygon.shp")
+                        gdb = os.path.join(self.destSrcPath.get(), self.projectID.get(), "project_data", gdbname, "Site_Feature_Polygon")
+                        
+                    
+                    arcpy.Project_management(kmzPolygon, out_dataset, outCS, transform_method="WGS_1984_(ITRF00)_To_NAD_1983")
+                    arcpy.AddField_management(out_dataset,'Type','TEXT','','','200')
+                    cursor = arcpy.UpdateCursor(out_dataset, ['Name','Type'])
+                    for row in cursor:
+                        
+                        
+                        fieldValue = row.getValue('Name')
+                        if "site" in fieldValue:
+                            row.setValue('Type', 'Site Boundary')
+
+                        elif "Site" in fieldValue:
+                             row.setValue('Type', 'Site Boundary')
+                        else:
+                            row.setValue('Type', 'Site Detail')
+                        cursor.updateRow(row)
+                    del row
+                    del cursor
+                    arcpy.Append_management(out_dataset, gdb, "NO_TEST","","")
+                                       
+            elif x == kmzPoint:
+                if arcpy.Exists(kmzPoint):
+                    if self.Q.get() == 0:
+                        out_dataset = os.path.join(r'V:\1102\active',self.projectID.get(),'gis','project_data',"kmz","kmz_projected_point.shp")
+                        gdb = os.path.join(r'V:\1102\active',self.projectID.get(),'gis', "project_data", gdbname, "Site_Feature_Point") 
+                    else:
+                        out_dataset = os.path.join(self.destSrcPath.get(), self.projectID.get(),"project_data","kmz","kmz_projected_polygon.shp")
+                        gdb = os.path.join(self.destSrcPath.get(), self.projectID.get(), "project_data", gdbname, "Site_Feature_Point")
+                    arcpy.Project_management(kmzPoint, out_dataset, outCS, transform_method="WGS_1984_(ITRF00)_To_NAD_1983")
+                    arcpy.AddField_management(out_dataset,'Type','TEXT','','','200')
+                    cursor = arcpy.UpdateCursor(out_dataset, ['Name','Type'])
+                    for row in cursor:
+                        
+                        
+                        fieldValue = row.getValue('Name')
+                        if "site" in fieldValue:
+                            row.setValue('Type', 'Site Boundary')
+
+                        elif "Site" in fieldValue:
+                             row.setValue('Type', 'Site Boundary')
+                        else:
+                            row.setValue('Type', 'Site Detail')
+                        cursor.updateRow(row)
+                    del row
+                    del cursor
+                    arcpy.Append_management(out_dataset, gdb, "NO_TEST","","")
+
+            elif x == kmzLine:
+                if arcpy.Exists(kmzLine):
+                    if self.Q.get() == 0:
+                        out_dataset = os.path.join(r'V:\1102\active',self.projectID.get(),'gis','project_data',"kmz","kmz_projected_line.shp")
+                        gdb = os.path.join(r'V:\1102\active',self.projectID.get(),'gis', "project_data", gdbname, "Site_Feature_Line") 
+                    else:
+                        out_dataset = os.path.join(self.destSrcPath.get(), self.projectID.get(),"project_data","kmz","kmz_projected_line.shp")
+                        gdb = os.path.join(self.destSrcPath.get(), self.projectID.get(), "project_data", gdbname, "Site_Feature_Line")
+                    arcpy.Project_management(kmzLine, out_dataset, outCS, transform_method="WGS_1984_(ITRF00)_To_NAD_1983")
+                    arcpy.AddField_management(out_dataset,'Type','TEXT','','','200')
+                    cursor = arcpy.UpdateCursor(out_dataset, ['Name','Type'])
+                    for row in cursor:
+                        
+                        
+                        fieldValue = row.getValue('Name')
+                        if "site" in fieldValue:
+                            row.setValue('Type', 'Site Boundary')
+
+                        elif "Site" in fieldValue:
+                             row.setValue('Type', 'Site Boundary')
+                        else:
+                            row.setValue('Type', 'Site Detail')
+                        cursor.updateRow(row)
+                    del row
+                    del cursor
+                    arcpy.Append_management(out_dataset, gdb, "NO_TEST","","")
+            
+                                           
+                
+                    
+            
+    def run(self):
+        print "Initializing program..."
+        projectType = self.projectType.get()
+        projectionType = self.projection.get()
+        size = self.mxd.get()
+        projectID = self.projectID.get()
+        imagery=self.imagery.get()
+        projectlocation = self.location1.get() + "\n" +  self.location2.get() + "\n" +self.location3.get()
+        projectClientName = self.clientName1.get() + "\n" + self.clientName2.get() + "\n" + self.clientName3.get() + "\n" + ""
+        logo=self.logo.get()
+        prep="Prepared by "+self.prep.get()+" on " + self.date1.get() + "\n" + "Quality Review by "+self.QA.get()+ " on "+ self.date2.get() + "\n" + "Approved by "+self.approved.get()+" on "+self.date3.get()
+        date1=self.date1.get()
+        QA=self.QA.get()
+        date2=self.date2.get()
+        approved=self.approved.get()
+        date3=self.date3.get()
+        kmzfile=self.kmzfile.get()
+        csvfile=self.csvfile.get()
+        destSrcPath=self.destSrcPath.get()
+
+        
+
+        fcType = ""
+
+        if self.fc1.get() == "Site_Feature_Point":
+            fcType = "Points"
+        elif self.fc1.get() == "bh_mw_location":
+            fcType = "Points"
+        elif self.fc1.get() == "Site_Feature_Line":
+            fcType = "Lines"
+        elif self.fc1.get() == "Site_Feature_Polygon":
+            fcType = "Polygons"
+            
+        mxdtype = ""
+        if self.projectType.get() == "Remedial_Excavation_Program":
+            mxdtype = "rep"
+        elif self.projectType.get() == "ESA_Phase1":
+            mxdtype = "esa_phase1"
+        elif self.projectType.get() == "ESA_Phase2":
+            mxdtype = "esa_phase2"
+        elif self.projectType.get() == "Historical":
+            mxdtype = "historical"
+        elif self.projectType.get() == "Pipelines":
+            mxdtype = "pipeline"
+
+        standalonemxd = "fig_"+self.figureName.get().replace(" ","_").lower() + ".mxd"
+        
+        
+###### determine format ########
+    
+
+        templateConfigure = os.path.join(self.mxd.get(),self.projectType.get())
+        cwd = os.getcwd()
+        templatefolder = os.path.join(cwd,"template","_gis_project_directory_template")
+        newprojectfolder = os.path.join(destSrcPath, projectID)
+        gdbfile = "UTM12.gdb"
+        gdbFolder = os.path.join(cwd,"template","gdb",gdbfile)
+        gdbname = projectID + '.gdb'
+        gdbVdrive = os.path.join(r'V:\1102\active',projectID,'gis','project_data',gdbname)
+        if self.projectType.get() == "Stand_Alone":
+            mxdfolder = os.path.join(cwd,"template","mxd",size + ".mxd")
+            os.makedirs(os.path.join(r'V:\1102\active',projectID,'gis','figures','pdf'))
+            mxd1 = arcpy.mapping.MapDocument(mxdfolder)
+
+            
+            mxdVdrive = os.path.join(r'V:\1102\active',projectID,'gis','figures',standalonemxd)
+            mxd1.saveACopy(mxdVdrive)
+        else:
+            mxdfolder = os.path.join(cwd,"template",'mxd',mxdtype)
+            mxdVdrive = os.path.join(r'V:\1102\active',projectID,'gis','figures',mxdtype)
+        gdbDest = os.path.join(newprojectfolder, "project_data",gdbname)
+        if self.Q.get()==0: #Vdrive = 0
+            if self.projectType.get() == "Stand_Alone":
+                shutil.copytree(gdbFolder,gdbVdrive)
+                outLocation = os.path.join(r'V:\1102\active',projectID,'gis','project_data',"kmz")
+                out_dataset = os.path.join(outLocation,"kmz_projected.shp")
+                gdb = os.path.join(r'V:\1102\active',projectID,'gis', "project_data", gdbname, self.fc1.get())
+                gdb2 = os.path.join(r'V:\1102\active',projectID,'gis', gdbname, self.fc2.get())
+                gdb3 = os.path.join(r'V:\1102\active',projectID,'gis','project_data', gdbname)
+                ws = arcpy.env.workspace = os.path.join(r'V:\1102\active',projectID,'gis','figures')
+            else:
+                shutil.copytree(gdbFolder,gdbVdrive)
+                shutil.copytree(mxdfolder, mxdVdrive)
+                outLocation = os.path.join(r'V:\1102\active',projectID,'gis','project_data',"kmz")
+                out_dataset = os.path.join(outLocation,"kmz_projected.shp")
+                gdb = os.path.join(r'V:\1102\active',projectID,'gis', "project_data", gdbname, self.fc1.get())
+                gdb2 = os.path.join(r'V:\1102\active',projectID,'gis', gdbname, self.fc2.get())
+                gdb3 = os.path.join(r'V:\1102\active',projectID,'gis','project_data', gdbname)
+                ws = arcpy.env.workspace = os.path.join(r'V:\1102\active',projectID,'gis','figures',projectType)
+        else:#Qdrive = 1
+            shutil.copytree(gdbFolder, gdbDest)
+            shutil.copytree(templatefolder, newprojectfolder)
+            outLocation = os.path.join(destSrcPath, projectID,"project_data","kmz")
+            out_dataset = os.path.join(destSrcPath, projectID,"project_data","kmz","kmz_projected.shp")
+            gdb = os.path.join(destSrcPath, projectID, "project_data", gdbname, self.fc1.get())
+            gdb2 = os.path.join(destSrcPath, projectID, "project_data", gdbname, self.fc2.get())
+            gdb3 = os.path.join(destSrcPath, projectID, "project_data", gdbname)
+            ws = arcpy.env.workspace = os.path.join(destSrcPath,projectID, "figures")
+            
+        
+
+
+
+        
+
+
+        
+
+        
+
+
+        
+####### LOADING KMZ #######
+        if self.kmz:
+            self.append_kmzFile(kmzfile, outLocation)
+####### LOADING CSV #######
+        
+        if self.csvfile.get():
+            with arcpy.da.InsertCursor(gdb2,['Label_1','X','Y','type','GWEL012018','SHAPE@XY']) as cursor:
+                with open(csvfile,'rb') as csvFile:
+                    next(csvFile)
+                    for row in csv.reader(csvFile):
+                        cursor.insertRow([row[0],row[1],row[2],row[3],float(row[4]),(float(row[1]),float(row[2]))])
+
+
+
+            
+##############################
+        
+        pdf_folder= os.path.join(ws, "pdf")
+
+            
+
+####### SET COORDINATE SYSTEM #######
+        if self.projection.get()=="UTM10":
+            outCS = arcpy.SpatialReference(os.path.join(cwd, 'projection','NAD 1983 UTM Zone 10N.prj'))
+        elif self.projection.get()=="UTM11":
+            outCS = arcpy.SpatialReference(os.path.join(cwd, 'projection','NAD 1983 UTM Zone 11N.prj'))
+        elif self.projection.get()=="UTM12":
+            outCS = arcpy.SpatialReference(os.path.join(cwd, 'projection','NAD 1983 UTM Zone 12N.prj'))
+        elif self.projection.get()=="3TM":
+            outCS = arcpy.SpatialReference(os.path.join(cwd, 'projection','NAD 1983 3TM 114.prj'))
+#####################################       
+
+        for mxd in arcpy.ListFiles("*.mxd"):
+            current_mxd = arcpy.mapping.MapDocument(os.path.join(ws, mxd))
+            ####### RESOURCE DATA IN MXD #######
+            current_mxd.replaceWorkspaces(gdbFolder,'FILEGDB_WORKSPACE',gdb3,'FILEGDB_WORKSPACE')
+            
+            if self.filePathList is not None:
+                for a in self.filePathList:
+                    self.addLayer(current_mxd,a)
+                
+            a = mxd + "\n" + "Exported map file: " + str(pdf_folder) + "\n"
+            self.console.insert('end', a)
+            print a
+
+                    
+####### CHANGE DATAFRAME COORDINATES SYSTEM & PAN TO SITE BOUNDARY EXTEND ########
+
+        
+            for frame in arcpy.mapping.ListDataFrames(current_mxd):
+                frame.spatialReference = outCS
+                for lyr in arcpy.mapping.ListLayers(current_mxd,"",frame):
+                    if lyr.name == "Site_Boundary":
+                        frame.panToExtent(lyr.getExtent())
+            if self.imagery.get() == 'Bing':
+                for lyr in arcpy.mapping.ListLayers(current_mxd):
+                    if lyr.name  == "Microsoft_Virtual_Earth_BING.lyr" :
+                        lyr.visible = True
+                        BingNotes = arcpy.mapping.ListLayoutElements(current_mxd, "TEXT_ELEMENT", "BING")[0]
+                        BingNotes.elementPositionY = 0.9296 
+                        coeNotes = arcpy.mapping.ListLayoutElements(current_mxd, "TEXT_ELEMENT", "COE")[0]
+                        coeNotes.elementPositionY = -10
+
+            elif self.imagery.get() == 'City of Edmonton':
+                for lyr in arcpy.mapping.ListLayers(current_mxd):
+                    if lyr.name  == "2015" :
+                        lyr.visible = True
+                        BingNotes = arcpy.mapping.ListLayoutElements(current_mxd, "TEXT_ELEMENT", "BING")[0]
+                        BingNotes.elementPositionY = -10
+                        coeNotes = arcpy.mapping.ListLayoutElements(current_mxd, "TEXT_ELEMENT", "COE")[0]
+                        coeNotes.elementPositionY = 1.0313
+
+            
+            draft = arcpy.mapping.ListLayoutElements(current_mxd, "TEXT_ELEMENT", "Draft Stamp 2")[0]
+            projectNumber = arcpy.mapping.ListLayoutElements(current_mxd, "TEXT_ELEMENT", "ProjectNumber or FigureID")[0]
+            projectNumber.text = self.projectID.get()
+            projectLocation = arcpy.mapping.ListLayoutElements(current_mxd, "TEXT_ELEMENT", "Project Location Line")[0]
+            projectLocation.text = projectlocation
+            projectLocation.elementPositionY = 1.7813 
+            QAQC = arcpy.mapping.ListLayoutElements(current_mxd, "TEXT_ELEMENT", "Prepared By text block")[0]
+            QAQC.text = prep
+            clientProjectName = arcpy.mapping.ListLayoutElements(current_mxd, "TEXT_ELEMENT", "Client/Project Name")[0]
+            clientProjectName.text = projectClientName
+            clientProjectName.elementPositionY = 1.6322 
+            current_mxd.save()
+            pdf_name = mxd.replace(".mxd",".pdf")
+            output = os.path.join(pdf_folder, pdf_name)
+            arcpy.mapping.ExportToPDF(current_mxd, output, resolution =250)
+
+
+        
+
+        self.console.insert('end', 'Complete'+'\n')
+        self.console.insert('end', 'Project folder located '+ newprojectfolder) 
+        self.console.configure(state='disabled')
+
+
+
+        print "COMPLETE"
+        print 'Project folder located '+ newprojectfolder
+        
+class existingProject(tk.Frame):
+    def __init__ (self, parent, controller):
+        tk.Frame.__init__(self,parent)
+        button1 = tk.Button(self, text="New Project",
+                            command=lambda: controller.show_frame(newProject))
+        button1.grid(row=0,column=0,sticky='WE')
+        button2 = tk.Button(self, text="Update Existing Project",
+                            command=lambda: controller.show_frame(existingProject))
+        button2.configure(relief= "sunken")
+        button2.grid(row=0,column=1,sticky='WE')
+        button3 = tk.Button(self, text="Export",
+                            command=lambda: controller.show_frame(exportProject))
+        button3.grid(row=0,column=2,sticky='WE')
+        
+        stepOne = tk.LabelFrame(self, text=" 1. MXD Folder:")
+        stepOne.grid(row=1, columnspan=7, sticky='WE', \
+                     padx=5, pady=5, ipadx=5, ipady=5)
+
+        
+        csLbl = tk.Label(self, text="CONSOLE LOG:")
+        csLbl.grid(row=5, columnspan=7, sticky='W', \
+                       padx=2, pady=0, ipadx=1, ipady=0)
+       
+        scrollb = tk.Scrollbar(self)
+        scrollb.grid(row=6, column=4, sticky='w')
+        self.console = tk.Text(self,yscrollcommand=scrollb.set,state='disabled')
+        self.console.grid(row=6, columnspan=10,sticky='WENS', \
+                       padx=7, pady=0, ipadx=7, ipady=0)
+
+
+
+
+class exportProject(tk.Frame):
+    def __init__ (self, parent, controller):
+        tk.Frame.__init__(self,parent)
+        button1 = tk.Button(self, text="New Project",
+                            command=lambda: controller.show_frame(newProject))
+        button1.grid(row=0,column=0,sticky='WE')
+        button2 = tk.Button(self, text="Update Existing Project",
+                            command=lambda: controller.show_frame(existingProject))
+        button2.grid(row=0,column=1,sticky='WE')
+        button3 = tk.Button(self, text="Export",
+                            command=lambda: controller.show_frame(exportProject))
+        button3.grid(row=0,column=2,sticky='WE')
+        button3.configure(relief= "sunken")
+
+
+        Mxd = tk.LabelFrame(self, text=" 1. MXD Folder: ")
+        Mxd.grid(row=1, columnspan=7, sticky='WE', \
+                       padx=5, pady=5, ipadx=5, ipady=5)
+        self.X = tk.IntVar()
+        finalize = tk.Checkbutton(Mxd, text="Finalize", variable=self.X).grid(row=1, column=0 ,sticky='W')
+        innerframe = tk.Frame(Mxd)
+        innerframe.grid(row=6, columnspan=11, sticky='WESN', \
+                     padx=5, pady=4, ipadx=5, ipady=4)
+
+        prepTxt= tk.Label(innerframe, text="Prepared by")
+        prepTxt.grid(row=0, column=0, sticky='E', padx=2, pady=1)
+        self.prep3 = tk.StringVar()
+        prepTxtEntry = tk.Entry(innerframe,width=4,textvariable=self.prep3)
+        prepTxtEntry.grid(row=0, column=1, sticky="W", pady=2)
+        onTxt1= tk.Label(innerframe, text="on")
+        onTxt1.grid(row=0, column=2, sticky="W", pady=2)
+        self.date13=tk.StringVar()
+        dateEntry1 = tk.Entry(innerframe,width=10,textvariable=self.date13)
+        dateEntry1.grid(row=0, column=3, sticky="W", pady=2, padx=2)
+        
+        QATxt= tk.Label(innerframe, text="Quality Reviwed by")
+        QATxt.grid(row=0, column=4, sticky='E', padx=2, pady=1)
+        self.QA3=tk.StringVar()
+        QATxtEntry = tk.Entry(innerframe,width=4,textvariable=self.QA3)
+        QATxtEntry.grid(row=0, column=5, sticky="W", pady=2)
+        onTxt2= tk.Label(innerframe, text="on")
+        onTxt2.grid(row=0, column=6, sticky="W", pady=2)
+        self.date23 =tk.StringVar()
+        dateEntry2 = tk.Entry(innerframe,width=10,textvariable=self.date23)
+        dateEntry2.grid(row=0, column=7, sticky="W", pady=2)
+
+        approvedTxt= tk.Label(innerframe, text="Approved by")
+        approvedTxt.grid(row=0, column=8, sticky='E', padx=2, pady=1)
+        self.approved3=tk.StringVar()
+        approvedEntry = tk.Entry(innerframe,width=4,textvariable=self.approved3)
+        approvedEntry.grid(row=0, column=9, sticky="W", pady=2)
+        onTxt3= tk.Label(innerframe, text="on")
+        onTxt3.grid(row=0, column=10, sticky="W", pady=2)
+        self.date33=tk.StringVar()
+        dateEntry3 = tk.Entry(innerframe,width=10,textvariable=self.date33)
+        dateEntry3.grid(row=0, column=11, sticky="W", pady=2)
+        self.mxdPath = tk.StringVar()
+        exportFolder = tk.Entry(Mxd, textvariable=self.mxdPath,width=100)
+        exportFolder.grid(row=0, column=0,columnspan=10, sticky="WE", pady=2)
+        Mxd.csvbutton = tk.Button(Mxd, text="Browse...", command=self.load_mxd, width=10)
+        Mxd.csvbutton.grid(row=0, column=11, sticky="WE",padx=2)
+        Mxd.runbutton = tk.Button(Mxd, text="RUN", command=self.export, width=25)
+        Mxd.runbutton.grid(row=0, column=12, sticky="WE",padx=2)
+
+        csLbl = tk.Label(self, text="CONSOLE LOG:")
+        csLbl.grid(row=5, columnspan=7, sticky='W', \
+                       padx=2, pady=0, ipadx=1, ipady=0)
+       
+        scrollb = tk.Scrollbar(self)
+        scrollb.grid(row=6, column=4, sticky='w')
+        self.console3 = tk.Text(self,yscrollcommand=scrollb.set,state='disabled')
+        self.console3.grid(row=6, columnspan=10,sticky='WENS', \
+                       padx=7, pady=0, ipadx=7, ipady=0)
+
+    def load_mxd(self):
+        self.mxdSrc = askdirectory()
+        if self.mxdSrc:
+            self.mxdPath.set(self.mxdSrc)
+    def export(self):
+        print "Initializing Export" + "\n"
+        
+        ws = arcpy.env.workspace = self.mxdPath.get()
+        print arcpy.env.workspace
+        pdf_folder= os.path.join(ws, "pdf")
+
+        prep="Prepared by "+self.prep3.get()+" on " + self.date13.get() + "\n" + "Quality Review by "+self.QA3.get()+ " on "+ self.date23.get() + "\n" + "Approved by "+self.approved3.get()+" on "+self.date33.get()
+
+        
+
+        for mxd in arcpy.ListFiles("*.mxd"):
+            a = mxd + "\n" + "Exported map file: " + str(pdf_folder) + "\n"
+            print a
+            
+            current_mxd = arcpy.mapping.MapDocument(os.path.join(ws, mxd))
+            draft = arcpy.mapping.ListLayoutElements(current_mxd, "TEXT_ELEMENT", "Draft Stamp 2")[0]
+            if self.X.get() == 1:
+                draft.elementPositionX = 20
+            QAQC = arcpy.mapping.ListLayoutElements(current_mxd, "TEXT_ELEMENT", "Prepared By text block")[0]
+            if self.date33.get() is not None:
+                QAQC.text = prep
+            
+                
+            current_mxd.save()
+            pdf_name = mxd.replace(".mxd",".pdf")
+            output = os.path.join(pdf_folder, pdf_name)
+            arcpy.mapping.ExportToPDF(current_mxd, output, resolution =250)
+
+
+        
+        print "Export Complete" + "\n"
+        print "PDF Located:" + pdf_folder
+
+        
+
+app=ESA()
+app.mainloop()
+
